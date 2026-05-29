@@ -21,8 +21,11 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Install dependencies
-        run: pip install click requests peewee pyyaml
+      - name: Install packages
+        # Core first so the adapter packages resolve bankhub-core locally.
+        run: |
+          pip install ./bankhub-core
+          pip install ./bankhub-files ./bankhub-connectors
       - name: Run tests
         run: python run_tests.py
         env:

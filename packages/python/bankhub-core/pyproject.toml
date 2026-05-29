@@ -1,0 +1,47 @@
+[build-system]
+requires = ["setuptools>=64", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "bankhub-core"
+version = "0.4.0"
+description = "The bankhub core: the normalised Transaction model, the source/destination plugin registry, the ingest→dedup→deliver engine, the idempotency store, and the CLI. Adapters ship separately (bankhub-files, bankhub-connectors)."
+readme = "README.md"
+requires-python = ">=3.9"
+# NOTE: no LICENSE file exists yet and this is a fork of pigri/banker. Confirm
+# the intended license and add a LICENSE file before publishing to PyPI.
+keywords = ["finance", "banking", "lunchmoney", "ynab", "actual", "plaid",
+            "simplefin", "ofx", "mt940", "camt", "csv", "etl", "aggregator"]
+authors = [{ name = "banker contributors" }]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: End Users/Desktop",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Office/Business :: Financial",
+    "Topic :: Software Development :: Libraries",
+]
+
+dependencies = [
+    "click>=8.0",
+    "peewee>=3.14",
+    "pyyaml>=5.4",
+]
+
+[project.optional-dependencies]
+dev = ["pylint", "autopep8", "build"]
+
+[project.urls]
+Homepage = "https://github.com/latetedemelon/banker"
+Repository = "https://github.com/latetedemelon/banker"
+Issues = "https://github.com/latetedemelon/banker/issues"
+
+[project.scripts]
+bankhub = "bankhub.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]

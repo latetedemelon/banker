@@ -4,9 +4,11 @@ __pycache__
 db/*
 orig/*
 config/assets.yml
-**/.DS_Store
-*.md
-test/*
 config/assets_test.yml
+**/.DS_Store
+tests/*
+legacy/*
 Statements
-
+dist/
+build/
+*.egg-info/

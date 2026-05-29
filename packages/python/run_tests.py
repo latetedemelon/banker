@@ -2,14 +2,15 @@
 # -*- coding: utf-8 -*-
 """Unified test runner.
 
-Runs both the new ``bankhub`` test suite (``test/test_*.py``) and the legacy
-``lib`` suite (``test.py``) in one process.  Loading modules by file path
-sidesteps the name clash between the ``test.py`` file and the ``test/``
-directory, and lets both suites share a single interpreter despite needing
-different import paths.
+Runs the ``bankhub`` test suite (``tests/test_*.py``) and the legacy v1 suite
+(``legacy/test.py``) in one process.  Loading modules by file path lets both
+suites share a single interpreter despite needing different import paths.
 
-Usage::
+The bankhub suite imports the installed packages (``bankhub``, ``bankhub_files``,
+``bankhub_connectors``) and relies on entry-point plugin discovery, so install
+the workspace first::
 
+    pip install -e ./bankhub-core ./bankhub-files ./bankhub-connectors
     python run_tests.py
 """
 
@@ -19,10 +20,10 @@ import sys
 import unittest
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
-LIB = os.path.join(ROOT, "lib")
+LIB = os.path.join(ROOT, "legacy", "lib")
 
-# The new suite imports `bankhub` (root on path); the legacy suite imports
-# flat modules from `lib`.  Both can coexist on sys.path.
+# bankhub packages are installed (above); the legacy suite imports flat modules
+# from ``legacy/lib``, so put that on the path.
 for path in (ROOT, LIB):
     if path not in sys.path:
         sys.path.insert(0, path)
@@ -43,14 +44,14 @@ def build_suite():
     suite = unittest.TestSuite()
 
     # New bankhub tests.
-    test_dir = os.path.join(ROOT, "test")
+    test_dir = os.path.join(ROOT, "tests")
     for fname in sorted(os.listdir(test_dir)):
         if fname.startswith("test_") and fname.endswith(".py"):
             mod = _load(f"bankhub_tests_{fname[:-3]}", os.path.join(test_dir, fname))
             suite.addTests(loader.loadTestsFromModule(mod))
 
-    # Legacy lib tests (best-effort: skip if lib has been removed).
-    legacy = os.path.join(ROOT, "test.py")
+    # Legacy v1 tests (best-effort: skip if the legacy island has been removed).
+    legacy = os.path.join(ROOT, "legacy", "test.py")
     if os.path.exists(legacy):
         try:
             mod = _load("legacy_lib_tests", legacy)

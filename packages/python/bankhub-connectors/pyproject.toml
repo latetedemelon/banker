@@ -1,0 +1,39 @@
+[build-system]
+requires = ["setuptools>=64", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "bankhub-connectors"
+version = "0.4.0"
+description = "API / aggregator adapters for bankhub: Plaid, SimpleFIN, Yodlee, GoCardless, TrueLayer, MX, Finicity, Teller, Salt Edge, Flinks and Lunchmoney sources, plus Lunchmoney, YNAB and Actual Budget destinations."
+readme = "README.md"
+requires-python = ">=3.9"
+# NOTE: confirm license + add a LICENSE file before publishing (see bankhub-core).
+keywords = ["finance", "plaid", "simplefin", "yodlee", "gocardless", "truelayer",
+            "lunchmoney", "ynab", "actual", "bankhub"]
+authors = [{ name = "banker contributors" }]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3",
+    "Topic :: Office/Business :: Financial",
+]
+
+dependencies = [
+    "bankhub-core>=0.4.0,<0.5.0",
+    "requests>=2.25",
+]
+
+[project.optional-dependencies]
+# The Actual Budget destination uses the actualpy SDK.
+actual = ["actualpy>=0.5"]
+
+[project.urls]
+Homepage = "https://github.com/latetedemelon/banker"
+
+# bankhub discovers this package's adapters via this entry point.
+[project.entry-points."bankhub.plugins"]
+connectors = "bankhub_connectors"
+
+[tool.setuptools.packages.find]
+where = ["src"]

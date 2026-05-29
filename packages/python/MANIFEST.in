@@ -1,9 +1,0 @@
-include README.md
-include pyproject.toml
-include Pipfile Pipfile.lock
-recursive-include bankhub/data *.yml
-recursive-include test *.py *.csv *.json *.ofx *.qif *.mt940 *.xml
-include run_tests.py
-include test.py
-recursive-include config *.yml
-include pipeline.example.yml

@@ -1,0 +1,41 @@
+[build-system]
+requires = ["setuptools>=64", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "bankhub-files"
+version = "0.4.0"
+description = "File-format adapters for bankhub: CSV (bank profiles), OFX/QFX, QIF, MT940, CAMT.053, and PDF statement sources, plus CSV and JSON destinations."
+readme = "README.md"
+requires-python = ">=3.9"
+# NOTE: confirm license + add a LICENSE file before publishing (see bankhub-core).
+keywords = ["finance", "csv", "ofx", "qif", "mt940", "camt", "pdf", "bankhub"]
+authors = [{ name = "banker contributors" }]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3",
+    "Topic :: Office/Business :: Financial",
+]
+
+dependencies = [
+    "bankhub-core>=0.4.0,<0.5.0",
+]
+
+[project.optional-dependencies]
+# The PDF statement source.
+pdf = ["pdfplumber>=0.7"]
+
+[project.urls]
+Homepage = "https://github.com/latetedemelon/banker"
+
+# bankhub discovers this package's adapters via this entry point: loading it
+# imports bankhub_files, whose __init__ registers every source/destination.
+[project.entry-points."bankhub.plugins"]
+files = "bankhub_files"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+bankhub_files = ["data/*.yml"]
