@@ -158,16 +158,41 @@ How today's code already lines up: `bankhub` is effectively the Python library
 *packaging* (a `pyproject.toml`, a stable public API, publish to PyPI), not a
 rewrite.
 
-Open decisions to confirm before building further (these change the layout):
-- **Repo shape:** monorepo (`packages/python`, `packages/node`, shared
-  `spec/`) vs. separate repos. Recommendation: monorepo with a shared,
-  language-neutral **adapter spec** (the normalised `Transaction` schema +
-  provider field-maps + sign rules as JSON/YAML) so Python and Node stay in
-  lock-step and new providers are added once.
-- **Library scope:** read-only **sources** first (the connect-to-aggregators
-  pain), with destinations following.
-- **Node now or after packaging Python:** porting the model + a couple of
-  reference adapters (CSV, SimpleFIN, Plaid) proves the shared-spec approach
-  before doing all ~18.
+**Decisions made** (2nd round of questions):
+- **Packaging:** three libraries — `core` + `files` + `connectors` — not one
+  monolith and not one-per-feature (dozens of packages = too much version
+  overhead).
+- **Repo shape:** monorepo with a shared, language-neutral **adapter spec**
+  (the normalised `Transaction` schema + provider field-maps + sign rules as
+  JSON/YAML) so Python and Node stay in lock-step and a provider is described
+  once.
+- **Sequence:** merge the formats/aggregators work first (done, PR #2), then
+  **package Python first** before any Node work.
 
-This section is a placeholder pending those answers; no Node code added yet.
+## 9. Python packaging (this PR)
+
+First concrete step of §8's "package Python first". Done **in place** (the
+physical move into `packages/python/` is a separate, mechanical follow-up so
+this PR stays reviewable):
+
+- **`pyproject.toml`** (setuptools): runtime deps `click`/`peewee`/`pyyaml`;
+  optional extras `connectors`/`http` (requests), `pdf` (pdfplumber),
+  `actual` (actualpy), `all`, `dev`. Console script `bankhub = bankhub.cli:main`.
+  Ships `bankhub/data/*.yml` via `package-data` + `MANIFEST.in`.
+- **Curated public API:** `bankhub/__init__.py` now re-exports the full stable
+  surface (model, `Source`/`Destination`, registry, `Engine`/`Store`,
+  `AccountMap`, pipeline config, errors) — 35 names in `__all__`. Bumped to
+  **0.3.0**.
+- **Verified:** built wheel + sdist, installed the wheel in a clean venv, and
+  confirmed the CLI runs from outside the source tree, the packaged YAML
+  profiles load, CSV parsing + engine run, and the `[all]` extra pulls
+  requests/pdfplumber. 60 tests still green.
+
+**Open item — licensing.** There is no `LICENSE` file and this repo is a fork
+of `pigri/banker` (orig. author David Papp). I did **not** fabricate one. I
+removed the MIT assertion from `pyproject.toml` and left a NOTE there: confirm
+the intended license and add a `LICENSE` file before publishing to PyPI.
+
+**Next:** carve `bankhub` into `core`/`files`/`connectors` and lay out the
+monorepo (`packages/python/*`, `spec/`), then port `core` + a few reference
+adapters to Node to validate the shared spec.
