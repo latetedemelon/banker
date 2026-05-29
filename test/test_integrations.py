@@ -44,8 +44,13 @@ def _txn(**kw):
 
 class RegistryTests(unittest.TestCase):
     def test_all_plugins_present(self):
-        self.assertEqual(set(available_sources()),
-                         {"csv", "plaid", "flinks", "lunchmoney"})
+        self.assertEqual(set(available_sources()), {
+            # aggregators / APIs
+            "plaid", "flinks", "lunchmoney", "simplefin", "yodlee",
+            "gocardless", "truelayer", "mx", "finicity", "teller", "saltedge",
+            # file formats
+            "csv", "ofx", "qif", "mt940", "camt", "pdf",
+        })
         self.assertEqual(set(available_destinations()),
                          {"csv", "json", "lunchmoney", "ynab", "actual"})
 

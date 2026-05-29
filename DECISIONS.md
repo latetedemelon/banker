@@ -112,6 +112,62 @@ real accounts is the remaining validation step.
 - Plaid sync-cursor persistence (currently re-fetches; dedup makes it safe).
 - More destinations (Actual via REST without `actualpy`, GnuCash, Firefly III,
   beancount/ledger export).
-- More sources (OFX/QFX, MT940, Plaid balances, Teller, GoCardless/Nordigen).
 - Categorisation/rules engine between normalise and deliver.
 - A small web UI or scheduled runner.
+
+## 7. Expansion: file formats, aggregators, PDF (2nd PR)
+
+Added a broad set of sources, all behind the same `Source` interface so they
+feed any destination unchanged.
+
+- **Bank file formats (pure, fully fixture-tested):** `ofx` (OFX 1.x SGML +
+  2.x XML + QFX), `qif`, `mt940` (SWIFT, incl. structured `:86:` and reversal
+  sign handling), `camt` (ISO 20022 CAMT.053, namespace-agnostic). No third-
+  party deps — chosen over libraries like `ofxparse`/`mt-940` so the parsers
+  are dependency-free and testable.
+- **Aggregators (HTTP via `requests`; pure parsers fixture-tested, live calls
+  need credentials):** `simplefin`, `gocardless` (ex-Nordigen), `truelayer`,
+  `yodlee`, `mx`, `finicity`, `teller`, `saltedge`.
+- **PDF (`pdf`):** incorporates the "extract tables → map columns" approach
+  used by bank-PDF projects, on a `pdfplumber` backend (camelot/tabula are
+  drop-in alternatives). The column-mapping + noise-row filtering is pure and
+  tested; only the extraction needs the lib + a real PDF.
+
+**Sign conventions captured per provider** (the easiest thing to get wrong):
+Plaid `+`=outflow (negate); GoCardless/Finicity/Teller/Salt Edge already
+signed; TrueLayer/Yodlee/MX unsigned + DEBIT/CREDIT flag; OFX/QIF signed;
+MT940 D/C mark (R prefix = reversal flips); CAMT `CdtDbtInd`. Each is asserted
+in tests.
+
+60 tests total now. **Not validated against live APIs** (same caveat as §4) —
+the parsers are tested against fixtures; wiring to real accounts is the
+remaining step.
+
+## 8. Direction: an "app" + a multi-language ("Node + Python") library
+
+Per product direction, this splits into two products:
+
+1. **The app** — the hub + CLI (and later a UI/scheduler) that *does* the
+   syncing. This is the current repo.
+2. **A library** others embed to connect to aggregators/formats without writing
+   an adapter for each — in **Python and Node** to start.
+
+How today's code already lines up: `bankhub` is effectively the Python library
+(normalised model + `Source`/`Destination` registry + adapters), and the CLI
+(`bankhub.cli` / `main.py`) is the app on top. So the Python side mostly needs
+*packaging* (a `pyproject.toml`, a stable public API, publish to PyPI), not a
+rewrite.
+
+Open decisions to confirm before building further (these change the layout):
+- **Repo shape:** monorepo (`packages/python`, `packages/node`, shared
+  `spec/`) vs. separate repos. Recommendation: monorepo with a shared,
+  language-neutral **adapter spec** (the normalised `Transaction` schema +
+  provider field-maps + sign rules as JSON/YAML) so Python and Node stay in
+  lock-step and new providers are added once.
+- **Library scope:** read-only **sources** first (the connect-to-aggregators
+  pain), with destinations following.
+- **Node now or after packaging Python:** porting the model + a couple of
+  reference adapters (CSV, SimpleFIN, Plaid) proves the shared-spec approach
+  before doing all ~18.
+
+This section is a placeholder pending those answers; no Node code added yet.

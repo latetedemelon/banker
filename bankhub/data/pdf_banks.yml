@@ -1,0 +1,30 @@
+# PDF statement profiles (column mapping for table extraction).
+#
+# Bank PDFs vary wildly, so each layout needs a small profile mapping the
+# extracted table columns to canonical fields.  Columns may be referenced by
+# header name (when the table has a usable header row) or by 0-based index.
+#
+# Keys:
+#   header_row     index of the header row in each table (-1 for none)
+#   date_format    strptime format for the date column (optional)
+#   decimal_comma  true for "1.234,56" amounts
+#   currency       currency for all rows
+#   columns        {date, amount, payee, notes} -> header name or index
+#
+# Add a bank by copying a block and adjusting the column mapping.
+
+# Header-based: the statement table has a recognisable header row.
+generic:
+  header_row: 0
+  columns:
+    date: "Date"
+    amount: "Amount"
+    payee: "Description"
+
+# Index-based example: no usable header, map by column position.
+generic_indexed:
+  header_row: -1
+  columns:
+    date: 0
+    payee: 1
+    amount: 2

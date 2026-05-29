@@ -6,4 +6,4 @@ orig/*
 config/assets.yml
 **/.DS_Store
 db
-Statements
+Statements.pytest_cache/
