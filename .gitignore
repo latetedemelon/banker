@@ -7,3 +7,7 @@ config/assets.yml
 **/.DS_Store
 db
 Statements.pytest_cache/
+dist/
+build/
+*.egg-info/
+.venv/

@@ -83,16 +83,20 @@ can feed **any** destination. Don't see your bank? Most are one YAML profile
 
 ## Install
 
+`bankhub` is a packaged Python library + CLI. Install from source (PyPI
+release pending):
+
 ```bash
-pip install click requests peewee pyyaml      # core deps
-pip install pdfplumber                          # optional: PDF source
-pip install actualpy                            # optional: Actual destination
+pip install .                  # core: CSV/OFX/QIF/MT940/CAMT + CSV/JSON out
+pip install ".[connectors]"    # + Plaid, SimpleFIN, Yodlee, … and Lunchmoney/YNAB
+pip install ".[pdf]"           # + PDF statement source (pdfplumber)
+pip install ".[actual]"        # + Actual Budget destination
+pip install ".[all]"           # everything
 ```
 
-File-format sources (`ofx`, `qif`, `mt940`, `camt`) and most logic need no
-extra dependencies; the API aggregators only need `requests`.
-
-Or with pipenv: `pipenv install`.
+Core needs only `click`, `peewee`, `pyyaml`. File-format sources work with
+just the core; the API connectors need `requests` (the `connectors` extra).
+Installing provides a `bankhub` command (the same CLI as `python main.py`).
 
 ## Quickstart
 
@@ -109,6 +113,37 @@ python main.py sync \
 
 Run it again tomorrow with an updated statement — only new rows are imported,
 and only new rows are pushed to each destination.
+
+### Use as a library
+
+Everything the CLI does is available through a small, stable public API
+(everything re-exported from the top-level `bankhub` package):
+
+```python
+import bankhub
+
+# 1. Build a source and read normalised transactions (no store needed):
+src = bankhub.build_source("ofx", file="statement.qfx")
+for txn in src.fetch():
+    print(txn.date, txn.amount, txn.payee)   # amount is signed: -ve = outflow
+
+# 2. Or run the full hub: ingest -> dedup -> deliver, idempotently.
+store = bankhub.Store("db/bankhub.db")
+engine = bankhub.Engine(store, bankhub.AccountMap.from_file("config/accounts.yml"))
+report = engine.sync(
+    bankhub.build_source("simplefin"),                 # reads $SIMPLEFIN_ACCESS_URL
+    [bankhub.build_destination("lunchmoney", token="..."),
+     bankhub.build_destination("json", file="out.jsonl")],
+)
+print(report.ingest, report.deliveries)
+
+bankhub.available_sources()        # -> ['camt', 'csv', 'finicity', 'flinks', ...]
+bankhub.available_destinations()   # -> ['actual', 'csv', 'json', 'lunchmoney', 'ynab']
+```
+
+`Transaction`, `Source`, `Destination`, `Engine`, `Store`, `AccountMap`,
+`build_source`/`build_destination`, the `register_*` decorators and the error
+types are all importable from `bankhub` directly.
 
 ### CLI
 
