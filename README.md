@@ -42,21 +42,55 @@ once and any source can feed any destination.
 
 ### Supported adapters
 
-| Sources | Needs | Destinations | Needs |
-| --- | --- | --- | --- |
-| `csv` | — | `csv` | — |
-| `lunchmoney` | `requests` | `json` | — |
-| `plaid` | `requests` | `lunchmoney` | `requests` |
-| `flinks` | `requests` | `ynab` | `requests` |
-| | | `actual` | `actualpy` |
+**Sources — bank file formats** (pure Python, no extra deps):
+
+| Source | Format |
+| --- | --- |
+| `csv` | delimited statements (data-driven per-bank profiles) |
+| `ofx` | OFX 1.x (SGML) and 2.x (XML) |
+| `qif` | Quicken Interchange Format |
+| `mt940` | SWIFT MT940 statements |
+| `camt` | ISO 20022 CAMT.053 (SEPA) |
+| `pdf` | PDF statements via table extraction (needs `pdfplumber`) |
+
+**Sources — aggregators / APIs** (need `requests` + credentials):
+
+| Source | Coverage |
+| --- | --- |
+| `plaid` | US/CA/EU |
+| `flinks` | Canada |
+| `simplefin` | SimpleFIN Bridge (privacy-friendly) |
+| `gocardless` | EU/UK open banking (ex-Nordigen, free) |
+| `truelayer` | UK/EU |
+| `yodlee` | global |
+| `mx` | US |
+| `finicity` | US (Mastercard) |
+| `teller` | US |
+| `saltedge` | global |
+| `lunchmoney` | pull back from Lunchmoney |
+
+**Destinations:**
+
+| Destination | Needs |
+| --- | --- |
+| `csv`, `json` | — |
+| `lunchmoney`, `ynab` | `requests` |
+| `actual` | `actualpy` |
+
+Every source emits the same normalised `Transaction`, so **any** source above
+can feed **any** destination. Don't see your bank? Most are one YAML profile
+(file formats) or ~80 lines (a new API) — see [Extending](#extending-add-an-adapter).
 
 ## Install
 
 ```bash
 pip install click requests peewee pyyaml      # core deps
-# optional, only for the Actual destination:
-pip install actualpy
+pip install pdfplumber                          # optional: PDF source
+pip install actualpy                            # optional: Actual destination
 ```
+
+File-format sources (`ofx`, `qif`, `mt940`, `camt`) and most logic need no
+extra dependencies; the API aggregators only need `requests`.
 
 Or with pipenv: `pipenv install`.
 
@@ -148,6 +182,41 @@ python main.py sync --source csv \
   --source-opt columns.date=When --source-opt columns.amount="How much" \
   --dest json --dest-opt file=acme.jsonl
 ```
+
+## Other file formats
+
+OFX/QFX, QIF, MT940 and CAMT.053 just need a file — sign conventions and
+account/currency detection are handled per format:
+
+```bash
+python main.py sync --source ofx   --source-opt file=stmt.qfx --dest json --dest-opt file=out.jsonl
+python main.py sync --source mt940 --source-opt file=stmt.sta --dest csv  --dest-opt file=out.csv
+python main.py sync --source camt  --source-opt file=stmt.xml --dest lunchmoney
+```
+
+PDF statements vary by bank, so map the columns (by header name or 0-based
+index) via a profile in `bankhub/data/pdf_banks.yml` or inline options:
+
+```bash
+python main.py sync --source pdf --source-opt file=statement.pdf \
+  --source-opt date_col=0 --source-opt payee_col=1 --source-opt amount_col=2 \
+  --source-opt date_format=%m/%d/%Y --dest csv --dest-opt file=out.csv
+```
+
+## Aggregators
+
+Each aggregator reads with `requests` and credentials (CLI options or env
+vars). Example — SimpleFIN to Lunchmoney + YNAB at once:
+
+```bash
+export SIMPLEFIN_ACCESS_URL="https://user:pass@bridge.simplefin.org/simplefin"
+python main.py sync --source simplefin \
+  --dest lunchmoney --dest ynab --account-map config/accounts.yml
+```
+
+GoCardless (ex-Nordigen), TrueLayer, Yodlee, MX, Finicity, Teller and Salt
+Edge follow the same shape; run `python main.py sources` and see each adapter's
+docstring for its options.
 
 ## Extending: add an adapter
 

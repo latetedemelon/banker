@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Document xmlns="urn:iso:std:iso:20022:tech:xsd:camt.053.001.08">
+  <BkToCstmrStmt>
+    <Stmt>
+      <Id>STMT-1</Id>
+      <Acct><Id><IBAN>DE89370400440532013000</IBAN></Id><Ccy>EUR</Ccy></Acct>
+      <Ntry>
+        <Amt Ccy="EUR">12.34</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2024-01-15</Dt></BookgDt>
+        <AcctSvcrRef>ENTRY-1</AcctSvcrRef>
+        <NtryDtls><TxDtls>
+          <RmtInf><Ustrd>Latte</Ustrd></RmtInf>
+          <RltdPties><Cdtr><Nm>Coffee Shop</Nm></Cdtr></RltdPties>
+        </TxDtls></NtryDtls>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">2000.00</Amt>
+        <CdtDbtInd>CRDT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2024-01-16</Dt></BookgDt>
+        <AcctSvcrRef>ENTRY-2</AcctSvcrRef>
+        <NtryDtls><TxDtls>
+          <RmtInf><Ustrd>Payroll</Ustrd></RmtInf>
+          <RltdPties><Dbtr><Nm>Employer Inc</Nm></Dbtr></RltdPties>
+        </TxDtls></NtryDtls>
+      </Ntry>
+    </Stmt>
+  </BkToCstmrStmt>
+</Document>

@@ -1,0 +1,17 @@
+{
+  "errors": [],
+  "accounts": [
+    {
+      "org": {"name": "Test Bank", "domain": "testbank.example"},
+      "id": "acct-1",
+      "name": "Checking",
+      "currency": "USD",
+      "balance": "1000.00",
+      "balance-date": 1705276800,
+      "transactions": [
+        {"id": "sf-1", "posted": 1705276800, "amount": "-12.34", "description": "Coffee Shop", "pending": false},
+        {"id": "sf-2", "posted": 1705363200, "amount": "2000.00", "description": "Payroll deposit", "payee": "Employer Inc", "memo": "Salary", "pending": true}
+      ]
+    }
+  ]
+}
