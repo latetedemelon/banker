@@ -1,11 +1,12 @@
 # banker
 
 A universal hub for personal-finance data: ingest transactions from any
-*source* (CSV/OFX/QIF/MT940/CAMT statements, PDF, Plaid, SimpleFIN, Yodlee,
-GoCardless, TrueLayer, MX, Finicity, Teller, Salt Edge, Lunchmoney …),
-normalise them into one model, de-duplicate, and deliver them to any
-*destination* (Lunchmoney, YNAB, Actual Budget, CSV, JSON …). One ingest fans
-out to many destinations, and every run is idempotent.
+*source* (CSV/OFX/QIF/MT940/CAMT/Excel statements, PDF, Plaid, SimpleFIN,
+Yodlee, GoCardless, TrueLayer, MX, Finicity, Teller, Salt Edge, Stripe,
+Lunchmoney …), normalise them into one model, de-duplicate, and deliver them to
+any *destination* (Lunchmoney, YNAB, Actual Budget, Firefly III, PocketSmith,
+OFX/QFX for Quicken·Simplifi·GnuCash, Copilot/Tiller CSV, Excel, CSV, JSON …).
+One ingest fans out to many destinations, and every run is idempotent.
 
 banker is both an **app** (a CLI / Docker image you run) and a **library** you
 embed. It's heading toward parity in **Python and Node** over a shared,

@@ -1,4 +1,4 @@
 # -*- coding: utf-8 -*-
 """API / aggregator destination adapters (registered on import)."""
 
-from . import actual, lunchmoney, ynab  # noqa: F401
+from . import actual, firefly, lunchmoney, pocketsmith, ynab  # noqa: F401

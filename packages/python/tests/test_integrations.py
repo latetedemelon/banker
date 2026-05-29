@@ -48,11 +48,15 @@ class RegistryTests(unittest.TestCase):
             # aggregators / APIs
             "plaid", "flinks", "lunchmoney", "simplefin", "yodlee",
             "gocardless", "truelayer", "mx", "finicity", "teller", "saltedge",
+            "stripe", "stripe_payments",
             # file formats
-            "csv", "ofx", "qif", "mt940", "camt", "pdf",
+            "csv", "ofx", "qif", "mt940", "camt", "pdf", "xlsx",
         })
-        self.assertEqual(set(available_destinations()),
-                         {"csv", "json", "lunchmoney", "ynab", "actual"})
+        self.assertEqual(set(available_destinations()), {
+            "csv", "json", "lunchmoney", "ynab", "actual",
+            "firefly", "pocketsmith", "ofx", "xlsx", "copilot", "tiller",
+            "gnucash",
+        })
 
     def test_unknown_plugin_raises(self):
         with self.assertRaises(PluginError):

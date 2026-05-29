@@ -52,6 +52,7 @@ once and any source can feed any destination.
 | `mt940` | SWIFT MT940 statements |
 | `camt` | ISO 20022 CAMT.053 (SEPA) |
 | `pdf` | PDF statements via table extraction (needs `pdfplumber`) |
+| `xlsx` | Excel statements (needs `openpyxl`) |
 
 **Sources — aggregators / APIs** (need `requests` + credentials):
 
@@ -67,15 +68,24 @@ once and any source can feed any destination.
 | `finicity` | US (Mastercard) |
 | `teller` | US |
 | `saltedge` | global |
+| `stripe` | Stripe Financial Connections (bank data) |
+| `stripe_payments` | Stripe balance transactions (merchant activity) |
 | `lunchmoney` | pull back from Lunchmoney |
 
 **Destinations:**
 
-| Destination | Needs |
-| --- | --- |
-| `csv`, `json` | — |
-| `lunchmoney`, `ynab` | `requests` |
-| `actual` | `actualpy` |
+| Destination | Needs | Notes |
+| --- | --- | --- |
+| `csv`, `json` | — | export / archive |
+| `xlsx` | `openpyxl` | Excel export |
+| `ofx` | — | OFX/QFX file for Quicken / Quicken Simplifi / GnuCash import |
+| `copilot` | — | Copilot Money import CSV |
+| `tiller` | — | Tiller Transactions-sheet CSV |
+| `gnucash` | `piecash` | writes a native GnuCash SQLite book |
+| `lunchmoney`, `ynab` | `requests` | budgeting apps |
+| `firefly` | `requests` | Firefly III (self-hosted) REST API |
+| `pocketsmith` | `requests` | PocketSmith REST API |
+| `actual` | `actualpy` | Actual Budget (self-hosted) |
 
 Every source emits the same normalised `Transaction`, so **any** source above
 can feed **any** destination. Don't see your bank? Most are one YAML profile

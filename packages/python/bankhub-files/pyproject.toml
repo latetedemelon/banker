@@ -25,6 +25,10 @@ dependencies = [
 [project.optional-dependencies]
 # The PDF statement source.
 pdf = ["pdfplumber>=0.7"]
+# The Excel (.xlsx) source + destination.
+xlsx = ["openpyxl>=3.0"]
+# The native GnuCash destination (writes a GnuCash SQLite book).
+gnucash = ["piecash>=1.1"]
 
 [project.urls]
 Homepage = "https://github.com/latetedemelon/banker"

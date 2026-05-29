@@ -12,6 +12,17 @@
 #   columns        {date, amount, payee, notes} -> header name or index
 #
 # Add a bank by copying a block and adjusting the column mapping.
+#
+# ⚠️  The per-bank profiles below are UNVERIFIED starting templates -- they were
+#     not built from real sample statements, so the header names/date formats
+#     are best guesses. Open your statement, run with the closest profile, and
+#     adjust `columns`/`date_format` to match. Contributions of verified
+#     profiles (and sample PDFs) are very welcome.
+#
+#     Limitation: many bank statements use SEPARATE debit/credit columns
+#     ("Money in"/"Money out", "Deposits"/"Withdrawals"). The single `amount`
+#     mapping here cannot combine those yet, so such layouts need either a
+#     pre-processing step or a parser enhancement.
 
 # Header-based: the statement table has a recognisable header row.
 generic:
@@ -28,3 +39,71 @@ generic_indexed:
     date: 0
     payee: 1
     amount: 2
+
+# ---- United States (UNVERIFIED templates) -------------------------------
+chase:
+  header_row: 0
+  date_format: "%m/%d/%Y"
+  currency: usd
+  columns: {date: "Date", payee: "Description", amount: "Amount"}
+
+bofa:
+  header_row: 0
+  date_format: "%m/%d/%Y"
+  currency: usd
+  columns: {date: "Date", payee: "Description", amount: "Amount"}
+
+amex:
+  header_row: 0
+  date_format: "%m/%d/%Y"
+  currency: usd
+  columns: {date: "Date", payee: "Description", amount: "Amount"}
+
+capital_one:
+  header_row: 0
+  date_format: "%m/%d/%Y"
+  currency: usd
+  columns: {date: "Transaction Date", payee: "Description", amount: "Amount"}
+
+citi:
+  header_row: 0
+  date_format: "%m/%d/%Y"
+  currency: usd
+  columns: {date: "Date", payee: "Description", amount: "Amount"}
+
+discover:
+  header_row: 0
+  date_format: "%m/%d/%Y"
+  currency: usd
+  columns: {date: "Trans. Date", payee: "Description", amount: "Amount"}
+
+us_bank:
+  header_row: 0
+  date_format: "%m/%d/%Y"
+  currency: usd
+  columns: {date: "Date", payee: "Transaction", amount: "Amount"}
+
+# ---- UK / fintech (UNVERIFIED templates; single signed amount column) ----
+monzo:
+  header_row: 0
+  date_format: "%d/%m/%Y"
+  currency: gbp
+  columns: {date: "Date", payee: "Name", amount: "Amount", notes: "Description"}
+
+starling:
+  header_row: 0
+  date_format: "%d/%m/%Y"
+  currency: gbp
+  columns: {date: "Date", payee: "Reference", amount: "Amount"}
+
+natwest:
+  header_row: 0
+  date_format: "%d/%m/%Y"
+  currency: gbp
+  columns: {date: "Date", payee: "Description", amount: "Amount"}
+
+wise:
+  header_row: 0
+  date_format: "%d-%m-%Y"
+  currency: gbp
+  columns: {date: "Date", payee: "Description", amount: "Amount"}

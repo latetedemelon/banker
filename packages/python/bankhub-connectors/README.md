@@ -3,8 +3,9 @@
 API / aggregator adapters for [bankhub](https://github.com/latetedemelon/banker).
 
 - **Sources:** Plaid, SimpleFIN, Yodlee, GoCardless, TrueLayer, MX, Finicity,
-  Teller, Salt Edge, Flinks, Lunchmoney.
-- **Destinations:** Lunchmoney, YNAB, Actual Budget.
+  Teller, Salt Edge, Flinks, Lunchmoney, Stripe (Financial Connections *and*
+  Payments/balance transactions).
+- **Destinations:** Lunchmoney, YNAB, Actual Budget, Firefly III, PocketSmith.
 
 ```bash
 pip install bankhub-connectors            # registers automatically with bankhub-core

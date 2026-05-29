@@ -32,9 +32,10 @@ dependencies = [
 [project.optional-dependencies]
 # The API / aggregator integrations.
 connectors = ["bankhub-connectors>=0.4.0,<0.5.0"]
-# Everything: connectors + the optional pdfplumber and actualpy SDKs.
+# Everything: connectors + the common optional SDKs (PDF, Excel, Actual).
+# The heavier/niche GnuCash writer stays opt-in via bankhub-files[gnucash].
 all = [
-    "bankhub-files[pdf]>=0.4.0,<0.5.0",
+    "bankhub-files[pdf,xlsx]>=0.4.0,<0.5.0",
     "bankhub-connectors[actual]>=0.4.0,<0.5.0",
 ]
 
