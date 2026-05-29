@@ -193,6 +193,36 @@ of `pigri/banker` (orig. author David Papp). I did **not** fabricate one. I
 removed the MIT assertion from `pyproject.toml` and left a NOTE there: confirm
 the intended license and add a `LICENSE` file before publishing to PyPI.
 
-**Next:** carve `bankhub` into `core`/`files`/`connectors` and lay out the
-monorepo (`packages/python/*`, `spec/`), then port `core` + a few reference
-adapters to Node to validate the shared spec.
+## 10. Monorepo move (this PR)
+
+First half of "finish Python structure" (the package split into
+`core`/`files`/`connectors` is the second half, a follow-up). Done as a pure
+relocation so it's reviewable and behaviourally inert:
+
+- **Layout:** all Python (the `bankhub` package, the legacy `lib/` + `test.py`
+  island, `test/`, `config/`, `main.py`, `run_tests.py`, `pyproject.toml`,
+  `MANIFEST.in`, `Pipfile*`, `.pylintrc`, `pipeline.example.yml`, `Dockerfile`,
+  `.dockerignore`) now lives under **`packages/python/`**. Moved with
+  `git mv`, so history is preserved.
+- **`spec/`** placeholder added — the future shared, language-neutral adapter
+  spec the Node port will consume.
+- **READMEs split** (standard monorepo convention): the old root README — which
+  was bankhub-specific (install/quickstart/CLI/extending) — became the
+  package's PyPI-facing `packages/python/README.md`; the new root README is a
+  short monorepo overview. `DECISIONS.md`, `SECURITY.md`, `.github/`,
+  `.gitignore`, `.vscode/` stay at the repo root.
+- **Docker:** build context is now the package — `docker build packages/python`.
+  The Dockerfile body is unchanged (its `COPY`s and `PYTHONPATH=/app:/app/lib`
+  still hold inside the image).
+- **CI:** the test workflow gained `working-directory: packages/python`; the
+  CodeQL workflow is path-agnostic and needs no change.
+- **Verified:** 60 tests green from the new location, `python main.py` works,
+  and wheel + sdist build with the package README embedded as long-description.
+
+Import names are unchanged (`import bankhub`, `bankhub.sources.*`), so the
+0.3.0 public API is untouched — only the files' on-disk location moved.
+
+**Next:** split `bankhub` into `core`/`files`/`connectors` distributions
+(entry-point plugin discovery so `core` need not import its own adapters),
+then port `core` + a few reference adapters to Node to validate the shared
+spec.

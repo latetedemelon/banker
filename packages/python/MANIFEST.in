@@ -1,5 +1,4 @@
 include README.md
-include DECISIONS.md
 include pyproject.toml
 include Pipfile Pipfile.lock
 recursive-include bankhub/data *.yml
