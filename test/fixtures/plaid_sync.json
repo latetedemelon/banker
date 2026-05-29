@@ -1,0 +1,31 @@
+{
+  "added": [
+    {
+      "transaction_id": "plaid-txn-001",
+      "account_id": "acct-checking",
+      "amount": 12.34,
+      "iso_currency_code": "USD",
+      "date": "2024-01-15",
+      "authorized_date": "2024-01-14",
+      "name": "COFFEE SHOP #42",
+      "merchant_name": "Coffee Shop",
+      "pending": false,
+      "personal_finance_category": {"primary": "FOOD_AND_DRINK", "detailed": "FOOD_AND_DRINK_COFFEE"}
+    },
+    {
+      "transaction_id": "plaid-txn-002",
+      "account_id": "acct-checking",
+      "amount": -2000.00,
+      "iso_currency_code": "USD",
+      "date": "2024-01-16",
+      "name": "PAYROLL DEPOSIT",
+      "merchant_name": null,
+      "pending": true,
+      "category": ["Transfer", "Payroll"]
+    }
+  ],
+  "modified": [],
+  "removed": [],
+  "next_cursor": "cursor-end",
+  "has_more": false
+}

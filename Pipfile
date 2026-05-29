@@ -14,7 +14,8 @@ peewee = "*"
 pyyaml = "*"
 
 [scripts]
-test = "python test.py"
+test = "python run_tests.py"
+banker = "python main.py"
 
 
 [requires]

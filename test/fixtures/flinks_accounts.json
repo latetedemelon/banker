@@ -1,0 +1,29 @@
+{
+  "Accounts": [
+    {
+      "Id": "flinks-acct-1",
+      "Title": "Chequing",
+      "Currency": "CAD",
+      "Transactions": [
+        {
+          "Id": "flinks-txn-1",
+          "Date": "2024-02-01",
+          "Description": "GROCERY STORE",
+          "Debit": 54.20,
+          "Credit": null,
+          "Balance": 945.80,
+          "Code": "POS"
+        },
+        {
+          "Id": "flinks-txn-2",
+          "Date": "2024-02-03",
+          "Description": "PAYROLL",
+          "Debit": null,
+          "Credit": 2500.00,
+          "Balance": 3445.80,
+          "Code": "DEP"
+        }
+      ]
+    }
+  ]
+}

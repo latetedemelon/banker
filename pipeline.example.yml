@@ -1,0 +1,47 @@
+# Example hub pipeline.  Run with:  python main.py run pipeline.example.yml
+#
+# Each pipeline ingests from one source and fans out to many destinations.
+# ${VAR} is read from the environment and ~ is expanded, so secrets stay out
+# of the file.  Re-running is safe: ingest dedups and delivery is tracked
+# per destination, so nothing is imported or pushed twice.
+
+store: db/bankhub.db
+account_map: config/accounts.yml     # path, or inline mapping (see below)
+strict_mapping: false                # true => error on unmapped accounts
+
+pipelines:
+  # 1) A downloaded Revolut statement -> Lunchmoney + a CSV archive.
+  - name: revolut-csv
+    source:
+      type: csv
+      bank: revolut
+      file: ~/statements/revolut.csv
+    destinations:
+      - {type: lunchmoney, token: "${LUNCHMONEY_TOKEN}"}
+      - {type: csv, file: exports/revolut.csv}
+
+  # 2) Plaid (live API) -> Lunchmoney, YNAB and a JSON archive at once.
+  - name: plaid-everywhere
+    source:
+      type: plaid
+      env: production
+      client_id: "${PLAID_CLIENT_ID}"
+      secret: "${PLAID_SECRET}"
+      access_token: "${PLAID_ACCESS_TOKEN}"
+    destinations:
+      - {type: lunchmoney, token: "${LUNCHMONEY_TOKEN}"}
+      - {type: ynab, token: "${YNAB_TOKEN}", budget_id: last-used}
+      - {type: json, file: exports/plaid.jsonl}
+
+  # 3) Flinks (Canadian banks) -> Actual Budget.
+  - name: flinks-to-actual
+    source:
+      type: flinks
+      instance: "${FLINKS_INSTANCE}"
+      customer_id: "${FLINKS_CUSTOMER_ID}"
+      login_id: "${FLINKS_LOGIN_ID}"
+    destinations:
+      - type: actual
+        server_url: "${ACTUAL_SERVER_URL}"
+        password: "${ACTUAL_PASSWORD}"
+        budget: "${ACTUAL_BUDGET}"

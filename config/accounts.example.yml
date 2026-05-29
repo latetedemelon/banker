@@ -1,0 +1,32 @@
+# Account mapping: source account id -> destination account id.
+#
+# Copy to config/accounts.yml and edit.  Keys under each destination are the
+# *source* account ids (Transaction.account_id) -- for CSV banks that's the
+# account number, or the currency for currency-keyed banks (Revolut, N26).
+#
+# Special values:
+#   skip       drop transactions for this account (don't deliver them)
+#   "*"        catch-all for any account not listed
+#   default    explicit fallback for unmapped accounts
+#
+# If a destination is omitted, account ids pass through unchanged.
+
+lunchmoney:
+  # Revolut / N26 expose the currency as the account id.
+  eur: 4501
+  usd: 4502
+  huf: 4520
+  # KH / OTP expose the bank account number.
+  "3771874088": 2008
+  "2148780624": 2001
+  "1782100073": 1500
+  "3894175921": 1501
+
+ynab:
+  # YNAB account ids are budget-account GUIDs (Account > Edit > URL).
+  eur: "00000000-0000-0000-0000-000000000000"
+
+actual:
+  # Actual accepts an account name or id.
+  eur: "Checking"
+  "*": skip            # ignore everything else for Actual
