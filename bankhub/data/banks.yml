@@ -1,0 +1,83 @@
+# Declarative CSV parsing profiles, keyed by bank name.
+#
+# Each profile maps a bank's CSV columns onto the canonical Transaction
+# fields so the CsvSource can normalise statements without any per-bank
+# Python code.  Add a new bank by adding a block here -- no code required.
+#
+# Supported keys
+#   delimiter         column delimiter (default ",")
+#   encoding          file encoding (default "utf-8-sig")
+#   date_format       strptime format for the date column (default: auto)
+#   decimal_comma     true for European "1.234,56" amounts (default false)
+#   default_currency  used when no currency column is present
+#   lowercase         list of resolved fields to lower-case (e.g. currency)
+#   filters           list of {column, equals} row filters (case-insensitive)
+#   account_from      use a resolved field as the account id (e.g. "currency")
+#   dynamic_amount    {header_regex} to detect the amount column + currency
+#                     from a header like "Amount (EUR)" (named group: currency)
+#   columns           mapping of canonical field -> source column.  A list
+#                     value means "first non-empty column wins".
+
+kh:
+  delimiter: "\t"
+  date_format: "%Y.%m.%d"
+  lowercase: [currency]
+  columns:
+    date: "könyvelés dátuma"
+    amount: "összeg"
+    currency: "összeg devizaneme"
+    payee: ["partner elnevezése", "típus"]
+    notes: "közlemény"
+    account: "könyvelési számla"
+
+otp:
+  delimiter: ";"
+  date_format: "%Y-%m-%d"
+  lowercase: [currency]
+  columns:
+    date: "Könyvelés dátuma"
+    amount: "Összeg"
+    currency: "Pénznem"
+    payee: ["Partner neve", "Közlemény"]
+    notes: "Közlemény"
+    category: "Költési kategória"
+    account: "Számla szám"
+
+revolut:
+  delimiter: ","
+  date_format: "%Y-%m-%d %H:%M:%S"
+  lowercase: [currency, account]
+  filters:
+    - column: "State"
+      equals: "completed"
+  columns:
+    date: "Completed Date"
+    amount: "Amount"
+    currency: "Currency"
+    payee: "Description"
+    notes: "Type"
+    account: "Currency"
+
+n26:
+  delimiter: ","
+  date_format: "%Y-%m-%d"
+  lowercase: [currency]
+  account_from: currency
+  dynamic_amount:
+    header_regex: '^Amount \((?P<currency>[A-Z]{3})\)$'
+  columns:
+    date: "Date"
+    payee: "Payee"
+    notes: "Payment reference"
+
+# A generic profile: standard ISO date, comma delimiter, plain headers.
+# Override any field via --source-opt columns.<field>=<header> on the CLI.
+generic:
+  delimiter: ","
+  columns:
+    date: "Date"
+    amount: "Amount"
+    currency: "Currency"
+    payee: "Payee"
+    notes: "Notes"
+    account: "Account"

@@ -1,0 +1,28 @@
+{
+  "transactions": [
+    {
+      "id": 9001,
+      "date": "2024-03-10",
+      "payee": "Electric Company",
+      "amount": "85.50",
+      "currency": "usd",
+      "notes": "March bill",
+      "asset_id": 4501,
+      "status": "cleared",
+      "external_id": "csv-revolut-abc123",
+      "category_id": 77
+    },
+    {
+      "id": 9002,
+      "date": "2024-03-11",
+      "payee": "Refund",
+      "amount": "-20.00",
+      "currency": "usd",
+      "notes": "",
+      "plaid_account_id": "plaid-acct-9",
+      "status": "uncleared",
+      "external_id": null,
+      "category_id": null
+    }
+  ]
+}
