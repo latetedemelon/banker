@@ -86,8 +86,9 @@ class StripePaymentsSource(Source):
             if resp.status_code >= 400:
                 raise SourceError(f"Stripe error HTTP {resp.status_code}: {resp.text[:300]}")
             data = resp.json()
-            for raw in data.get("data", []):
+            page = data.get("data", [])
+            for raw in page:
                 yield balance_txn_to_transaction(raw)
-            if not data.get("has_more"):
+            if not page or not data.get("has_more"):
                 break
-            params["starting_after"] = data["data"][-1]["id"]
+            params["starting_after"] = page[-1]["id"]

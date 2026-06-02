@@ -19,8 +19,8 @@ import yaml
 
 from bankhub.errors import ConfigError, SourceError
 from bankhub.models import Transaction
-from bankhub.normalize import (clean_text, compute_external_id, parse_amount,
-                         parse_date)
+from bankhub.normalize import (clean_text, combined_amount, compute_external_id,
+                         parse_amount, parse_date)
 from bankhub.registry import register_source
 from bankhub.sources.base import Source
 
@@ -94,9 +94,17 @@ class CsvSource(Source):
             if "currency" in lower:
                 currency = currency.lower()
 
-            raw_amount = row.get(amount_col) if amount_col else \
-                self._first(row, self.columns.get("amount"))
-            amount = parse_amount(raw_amount, decimal_comma=decimal_comma)
+            if amount_col:
+                amount = parse_amount(row.get(amount_col), decimal_comma=decimal_comma)
+            elif self.columns.get("debit") is not None or self.columns.get("credit") is not None:
+                # Split "money out"/"money in" columns -> one signed amount.
+                amount = combined_amount(
+                    self._first(row, self.columns.get("debit")),
+                    self._first(row, self.columns.get("credit")),
+                    decimal_comma=decimal_comma)
+            else:
+                amount = parse_amount(self._first(row, self.columns.get("amount")),
+                                      decimal_comma=decimal_comma)
 
             payee = self._first(row, self.columns.get("payee"))
             notes = self._first(row, self.columns.get("notes"))
