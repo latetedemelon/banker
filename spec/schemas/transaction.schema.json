@@ -1,0 +1,75 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/latetedemelon/banker/spec/schemas/transaction.schema.json",
+  "title": "Transaction",
+  "description": "The normalised transaction that every bankhub source emits and every destination consumes -- the interlingua of the hub. This schema describes the JSON form (the Python dataclass's to_dict()): Decimals are strings, dates are ISO-8601. Amount is SIGNED: negative = money out (debit/outflow), positive = money in (credit/inflow).",
+  "type": "object",
+  "required": ["external_id", "source", "account_id", "date", "amount", "currency"],
+  "additionalProperties": false,
+  "properties": {
+    "external_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Stable, deterministic id used to de-duplicate across runs. Use the source's own immutable id when it has one; otherwise compute one (see SPEC.md 'Identity & de-duplication')."
+    },
+    "source": {
+      "type": "string",
+      "description": "Name of the producing source, optionally namespaced, e.g. 'csv:revolut' or 'plaid'."
+    },
+    "account_id": {
+      "type": "string",
+      "description": "Source-side account identifier (account number, currency, Plaid account_id, ...)."
+    },
+    "date": {
+      "type": "string",
+      "format": "date",
+      "description": "Posting/booking date, ISO-8601 (YYYY-MM-DD)."
+    },
+    "amount": {
+      "type": "string",
+      "pattern": "^-?[0-9]+(\\.[0-9]+)?$",
+      "description": "Signed decimal serialised as a string (never a float, to avoid binary rounding error). Negative = outflow, positive = inflow."
+    },
+    "currency": {
+      "type": "string",
+      "pattern": "^[a-z]{3}$",
+      "description": "ISO-4217 currency code, lower-cased."
+    },
+    "payee": {
+      "type": "string",
+      "default": "",
+      "description": "Counterparty / merchant. Whitespace-collapsed and trimmed."
+    },
+    "notes": {
+      "type": "string",
+      "default": "",
+      "description": "Free-text memo. Whitespace-collapsed and trimmed."
+    },
+    "category": {
+      "type": ["string", "null"],
+      "default": null,
+      "description": "Source-provided category, if any."
+    },
+    "status": {
+      "enum": ["posted", "pending"],
+      "default": "posted",
+      "description": "Lifecycle state."
+    },
+    "posted_date": {
+      "type": ["string", "null"],
+      "format": "date",
+      "default": null,
+      "description": "Date the transaction posted, if distinct from 'date'."
+    },
+    "balance": {
+      "type": ["string", "null"],
+      "pattern": "^-?[0-9]+(\\.[0-9]+)?$",
+      "default": null,
+      "description": "Running account balance after this transaction, if the source provides it (signed decimal string)."
+    },
+    "raw": {
+      "type": "object",
+      "description": "The original source record, retained for debugging and re-processing. Opaque to the engine."
+    }
+  }
+}

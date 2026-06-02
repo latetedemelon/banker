@@ -314,3 +314,30 @@ are **not live-certified**. The `gnucash`/`piecash` path can't be exercised in
 CI (no book), so it's conservatively implemented and caveated. The OFX writer
 and XLSX read/write paths *are* tested (OFX via parser round-trip; XLSX via an
 `openpyxl`-guarded round-trip, with `[xlsx]` added to CI). 78 tests green.
+
+## 13. Extract the shared adapter spec (this PR)
+
+The bridge to the Node port: `spec/` (a placeholder until now) becomes the
+**language-neutral contract** both runtimes consume.
+
+- **Schemas** (`spec/schemas/*.json`, JSON Schema 2020-12) for `Transaction`,
+  `PushResult`, `Account` — describing the JSON form the Python `to_dict()`
+  emits (money as decimal **strings**, dates ISO-8601, signed amount).
+- **`spec/SPEC.md`** — the normative contract: model rules, the source and
+  destination behaviours, account mapping (`target_account`), discovery/naming,
+  options + env-var conventions, and the error taxonomy. Crucially it pins the
+  **`external_id` de-dup algorithm** (sha1 over a canonical `|`-joined string)
+  with a **conformance vector**, so a Node adapter computes byte-identical dedup
+  ids to Python.
+- **`spec/adapters.md`** — the canonical name registry (20 sources / 12
+  destinations, owning package, optional dep) so pipelines stay portable.
+
+**Kept honest by code, not prose.** `packages/python/tests/test_spec.py`
+validates real model objects against the schemas, asserts the serialised keys
+*equal* the schema properties (so model/spec can't drift), and reproduces the
+`external_id` conformance vector. The dependency-free guards always run; full
+JSON-Schema validation runs too (CI now installs `jsonschema`). 84 tests green.
+
+Python stays the reference implementation; nothing in the package changed —
+this PR only adds `spec/` and its guard test. **Next:** a small Node package
+consuming these schemas (core model + registry + a CSV/OFX reference adapter).

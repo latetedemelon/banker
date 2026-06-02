@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/latetedemelon/banker/spec/schemas/push-result.schema.json",
+  "title": "PushResult",
+  "description": "The outcome of delivering a single Transaction to a destination. A destination's push() returns exactly one PushResult per input transaction, in the same order.",
+  "type": "object",
+  "required": ["external_id", "status"],
+  "additionalProperties": false,
+  "properties": {
+    "external_id": {
+      "type": "string",
+      "description": "The external_id of the transaction this result is for."
+    },
+    "status": {
+      "enum": ["created", "skipped", "error"],
+      "description": "'created' = delivered; 'skipped' = the destination recognised it as a duplicate; 'error' = delivery failed (see 'error')."
+    },
+    "remote_id": {
+      "type": ["string", "null"],
+      "default": null,
+      "description": "Identifier the destination assigned, when available (used to link local <-> remote)."
+    },
+    "error": {
+      "type": ["string", "null"],
+      "default": null,
+      "description": "Human-readable failure reason when status is 'error' (or the duplicate marker when 'skipped')."
+    }
+  }
+}
