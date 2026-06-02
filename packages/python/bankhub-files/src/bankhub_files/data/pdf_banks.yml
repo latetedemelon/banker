@@ -9,7 +9,9 @@
 #   date_format    strptime format for the date column (optional)
 #   decimal_comma  true for "1.234,56" amounts
 #   currency       currency for all rows
-#   columns        {date, amount, payee, notes} -> header name or index
+#   columns        {date, amount, payee, notes} -> header name or index;
+#                  OR {date, debit, credit, payee} for split money-out/money-in
+#                  columns (combined into one signed amount: credit - debit)
 #
 # Add a bank by copying a block and adjusting the column mapping.
 #
@@ -18,11 +20,6 @@
 #     are best guesses. Open your statement, run with the closest profile, and
 #     adjust `columns`/`date_format` to match. Contributions of verified
 #     profiles (and sample PDFs) are very welcome.
-#
-#     Limitation: many bank statements use SEPARATE debit/credit columns
-#     ("Money in"/"Money out", "Deposits"/"Withdrawals"). The single `amount`
-#     mapping here cannot combine those yet, so such layouts need either a
-#     pre-processing step or a parser enhancement.
 
 # Header-based: the statement table has a recognisable header row.
 generic:
@@ -107,3 +104,22 @@ wise:
   date_format: "%d-%m-%Y"
   currency: gbp
   columns: {date: "Date", payee: "Description", amount: "Amount"}
+
+# ---- UK high-street, split money-out/money-in columns (UNVERIFIED) --------
+hsbc:
+  header_row: 0
+  date_format: "%d %b %y"
+  currency: gbp
+  columns: {date: "Date", payee: "Payment type and details", debit: "Paid out", credit: "Paid in"}
+
+barclays:
+  header_row: 0
+  date_format: "%d %b %Y"
+  currency: gbp
+  columns: {date: "Date", payee: "Description", debit: "Money out", credit: "Money in"}
+
+lloyds:
+  header_row: 0
+  date_format: "%d/%m/%Y"
+  currency: gbp
+  columns: {date: "Date", payee: "Description", credit: "In", debit: "Out"}

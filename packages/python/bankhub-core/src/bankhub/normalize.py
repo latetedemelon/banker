@@ -70,6 +70,20 @@ def parse_amount(value, *, decimal_comma: bool = False, thousands: str = None) -
     return -result if negative else result
 
 
+def combined_amount(debit, credit, *, decimal_comma: bool = False) -> Decimal:
+    """Combine separate *debit* (money out) and *credit* (money in) cells into a
+    single signed amount: positive = inflow, negative = outflow.
+
+    Each column is treated as a magnitude — its sign is ignored and an empty
+    cell counts as zero — which matches statements that split amounts across
+    "Money out"/"Money in" (or "Debit"/"Credit", "Withdrawals"/"Deposits")
+    columns instead of one signed column.
+    """
+    out = abs(parse_amount(debit, decimal_comma=decimal_comma))
+    inn = abs(parse_amount(credit, decimal_comma=decimal_comma))
+    return inn - out
+
+
 def parse_date(value, fmt: Optional[str] = None) -> _dt.date:
     """Parse a date string. With ``fmt`` use :func:`strptime`; otherwise try
     ISO-8601 and a handful of common fallbacks."""

@@ -20,8 +20,8 @@ import yaml
 
 from bankhub.errors import ConfigError, MissingDependencyError
 from bankhub.models import Transaction
-from bankhub.normalize import (clean_text, compute_external_id, parse_amount,
-                         parse_date)
+from bankhub.normalize import (clean_text, combined_amount, compute_external_id,
+                         parse_amount, parse_date)
 from bankhub.registry import register_source
 from bankhub.sources.base import Source
 
@@ -58,21 +58,36 @@ def tables_to_rowdicts(tables: List[List[List]], header_row: Optional[int] = 0
     return rowdicts
 
 
-def rows_to_transactions(rowdicts: List[Dict[str, str]], *, date_col, amount_col,
-                         payee_col=None, notes_col=None, source_name="pdf",
+def rows_to_transactions(rowdicts: List[Dict[str, str]], *, date_col, amount_col=None,
+                         payee_col=None, notes_col=None, debit_col=None,
+                         credit_col=None, source_name="pdf",
                          account: str = "pdf", currency: str = "usd",
                          date_format: str = None, decimal_comma: bool = False
                          ) -> List[Transaction]:
-    """Map row dicts to transactions, skipping rows that aren't transactions."""
+    """Map row dicts to transactions, skipping rows that aren't transactions.
+
+    Either a single signed ``amount_col`` or a ``debit_col``/``credit_col`` pair
+    (split "money out"/"money in" columns) supplies the amount.
+    """
+    split = amount_col is None and (debit_col is not None or credit_col is not None)
     out: List[Transaction] = []
     for rd in rowdicts:
         raw_date = _resolve(rd, date_col)
-        raw_amount = _resolve(rd, amount_col)
-        if not raw_date or not raw_amount:
+        if not raw_date:
             continue
         try:
             date = parse_date(raw_date, date_format)
-            amount = parse_amount(raw_amount, decimal_comma=decimal_comma)
+            if split:
+                raw_debit = _resolve(rd, debit_col)
+                raw_credit = _resolve(rd, credit_col)
+                if not raw_debit and not raw_credit:
+                    continue
+                amount = combined_amount(raw_debit, raw_credit, decimal_comma=decimal_comma)
+            else:
+                raw_amount = _resolve(rd, amount_col)
+                if not raw_amount:
+                    continue
+                amount = parse_amount(raw_amount, decimal_comma=decimal_comma)
         except Exception:
             continue  # header / footer / noise row
         payee = clean_text(_resolve(rd, payee_col))
@@ -118,7 +133,8 @@ class PdfSource(Source):
 
     def __init__(self, file: str = None, bank: str = "generic", pages: str = "all",
                  header_row=0, date_col=None, amount_col=None, payee_col=None,
-                 notes_col=None, date_format: str = None, decimal_comma=False,
+                 notes_col=None, debit_col=None, credit_col=None,
+                 date_format: str = None, decimal_comma=False,
                  currency: str = "usd", account: str = "pdf", **options):
         super().__init__(**options)
         if not file:
@@ -133,14 +149,18 @@ class PdfSource(Source):
         self.amount_col = amount_col if amount_col is not None else cols.get("amount")
         self.payee_col = payee_col if payee_col is not None else cols.get("payee")
         self.notes_col = notes_col if notes_col is not None else cols.get("notes")
+        self.debit_col = debit_col if debit_col is not None else cols.get("debit")
+        self.credit_col = credit_col if credit_col is not None else cols.get("credit")
         self.date_format = date_format or profile.get("date_format")
         self.decimal_comma = _as_bool(profile.get("decimal_comma", decimal_comma))
         self.currency = currency or profile.get("currency", "usd")
         self.account = account
-        if self.date_col is None or self.amount_col is None:
+        has_amount = (self.amount_col is not None or self.debit_col is not None
+                      or self.credit_col is not None)
+        if self.date_col is None or not has_amount:
             raise ConfigError(
-                "pdf source needs date_col and amount_col (via options or a "
-                f"profile); none found for bank={bank!r}")
+                "pdf source needs date_col and an amount source (amount_col, or "
+                f"debit_col/credit_col) via options or a profile; none for bank={bank!r}")
 
     @property
     def source_id(self) -> str:
@@ -162,6 +182,7 @@ class PdfSource(Source):
         yield from rows_to_transactions(
             rowdicts, date_col=self.date_col, amount_col=self.amount_col,
             payee_col=self.payee_col, notes_col=self.notes_col,
+            debit_col=self.debit_col, credit_col=self.credit_col,
             source_name=self.source_id, account=self.account,
             currency=self.currency, date_format=self.date_format,
             decimal_comma=self.decimal_comma)

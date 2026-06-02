@@ -81,3 +81,15 @@ generic:
     payee: "Payee"
     notes: "Notes"
     account: "Account"
+
+# Split-column variant: separate Debit (money out) and Credit (money in)
+# columns instead of one signed Amount. The source combines them into a signed
+# amount (credit - debit), treating each column as a positive magnitude.
+generic_split:
+  delimiter: ","
+  columns:
+    date: "Date"
+    debit: "Debit"
+    credit: "Credit"
+    payee: "Description"
+    account: "Account"
