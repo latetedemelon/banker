@@ -226,3 +226,91 @@ Import names are unchanged (`import bankhub`, `bankhub.sources.*`), so the
 (entry-point plugin discovery so `core` need not import its own adapters),
 then port `core` + a few reference adapters to Node to validate the shared
 spec.
+
+## 11. core / files / connectors split (this PR)
+
+Second half of "finish Python structure". `bankhub` is now a family of
+distributions under `packages/python/`, each `src`-layout:
+
+| Dir | Distribution | Import | Contents |
+| --- | --- | --- | --- |
+| `bankhub-core/` | `bankhub-core` | `bankhub` | model, registry, engine, store, mapping, config, errors, the `Source`/`Destination` base classes, and the `bankhub` CLI |
+| `bankhub-files/` | `bankhub-files` | `bankhub_files` | CSV/OFX/QIF/MT940/CAMT/PDF sources + CSV/JSON destinations, and the `data/*.yml` bank profiles |
+| `bankhub-connectors/` | `bankhub-connectors` | `bankhub_connectors` | the 11 HTTP sources + Lunchmoney/YNAB/Actual destinations |
+| `bankhub/` | `bankhub` | *(none)* | umbrella metapackage — no code, just dependencies |
+
+**Discovery — entry points.** Each adapter distribution advertises its package
+in the `bankhub.plugins` entry-point group; `core`'s `load_plugins()` loads
+each (importing the package runs the existing `@register_*` decorators) and
+also still scans `bankhub.sources`/`bankhub.destinations` for vendored
+adapters. So `core` never imports its own plugins (no inverted dependency),
+and a third party can add adapters just by shipping a distribution with the
+entry point. `importlib.metadata` is handled for 3.9 (dict API) and 3.10–3.12
+(`select`).
+
+**Install / batteries-included (per the decision).** A bare `pip install
+bankhub` stays batteries-included: the `bankhub` umbrella depends on
+`bankhub-core` + `bankhub-files`, so the core, CLI and every file-format
+adapter work out of the box. `bankhub[connectors]` adds the HTTP integrations;
+`bankhub[all]` adds those plus the optional `pdfplumber`/`actualpy` SDKs. The
+umbrella exists specifically to keep the dependency graph a **DAG** — making
+the `bankhub` *code* distribution depend on `bankhub-files` (which depends back
+on it) would have created a cycle, so the code distribution is `bankhub-core`
+and the friendly `bankhub` name is the umbrella.
+
+**Mechanical bits.** Adapters' relative imports (`from ..models`, `from .base`)
+were rewritten to absolute (`from bankhub.models`, `from bankhub.sources.base`)
+since they now live outside the `bankhub` package; the white-box tests that
+import adapter internals were repointed to `bankhub_files.*` /
+`bankhub_connectors.*`. The data-file path inside `csv_source`/`pdf`
+(`dirname(__file__)/../data`) is unchanged because the `sources/` + `data/`
+layout was preserved. The test suite (`tests/`) and the legacy v1 island
+(`legacy/lib`, `legacy/test.py`) moved to the workspace root; `run_tests.py`,
+the Dockerfile (now `pip install`s the three packages and uses the `bankhub`
+console-script entrypoint) and CI were updated to install the workspace
+(core first) rather than a flat dep list.
+
+**Public API unchanged.** `import bankhub` and everything in its `__all__` are
+identical; only adapters moved to internal import names. Version → **0.4.0**
+across the family.
+
+## 12. More integrations: Stripe, XLSX, budget apps & export files (this PR)
+
+Built on the §11 split. Adds **3 sources** and **7 destinations** (taking the
+catalogue to 20 sources / 12 destinations), per the chosen options
+(Stripe = both flavours; no-API apps via files + native GnuCash; PDF common
+banks scaffolded).
+
+**New connectors (`bankhub-connectors`, need `requests`):**
+- `stripe` — Stripe **Financial Connections** (bank data), and `stripe_payments`
+  — Stripe **balance transactions** (merchant activity). Sources.
+- `firefly` — **Firefly III** destination (REST, PAT). Maps the signed amount to
+  Firefly's double-entry `withdrawal`/`deposit` with source/destination
+  accounts; sends `external_id` for dedup.
+- `pocketsmith` — **PocketSmith** destination (REST, developer key).
+
+**New file adapters (`bankhub-files`):**
+- `xlsx` — Excel **source + destination** (optional `openpyxl`, extra `[xlsx]`).
+- `ofx` — OFX/QFX **export** destination (stdlib) for **Quicken / Quicken
+  Simplifi / GnuCash** import; OFX 1.0.2 SGML default, `version=2` for XML,
+  `intu_bid` for `.qfx`. Self-tested by round-tripping through the OFX *parser*.
+- `copilot`, `tiller` — app-format **CSV export** destinations (stdlib).
+- `gnucash` — **native** GnuCash writer via optional `piecash` (extra
+  `[gnucash]`); two-split transactions into a SQLite book.
+
+**No-public-API apps.** Quicken Simplifi, Copilot, Tiller and GnuCash have no
+push API, so "support" = generating files they import (OFX/QFX, app CSVs) plus
+the native GnuCash book writer — no credentials, works offline.
+
+**PDF common banks.** `pdf_banks.yml` gained named templates (Chase, BofA, Amex,
+Capital One, Citi, Discover, US Bank, Monzo, Starling, NatWest, Wise). These are
+**unverified scaffolds** (built without sample statements) and are labelled as
+such; the single-`amount` mapping also can't yet combine split debit/credit
+columns (a documented limitation). They need tuning against real PDFs.
+
+**Maturity.** The API adapters (Stripe ×2, Firefly, PocketSmith) are built from
+official docs with unit tests over their pure transform/mapping functions, but
+are **not live-certified**. The `gnucash`/`piecash` path can't be exercised in
+CI (no book), so it's conservatively implemented and caveated. The OFX writer
+and XLSX read/write paths *are* tested (OFX via parser round-trip; XLSX via an
+`openpyxl`-guarded round-trip, with `[xlsx]` added to CI). 78 tests green.

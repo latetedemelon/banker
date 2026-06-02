@@ -1,0 +1,49 @@
+[build-system]
+requires = ["setuptools>=64", "wheel"]
+build-backend = "setuptools.build_meta"
+
+# Umbrella / convenience distribution. It ships no code of its own -- it just
+# pulls in the core plus a sensible set of adapters so `pip install bankhub`
+# is batteries-included (core + every file-format adapter). Add the HTTP
+# integrations with `bankhub[connectors]`, or absolutely everything (incl. the
+# optional pdfplumber / actualpy SDKs) with `bankhub[all]`.
+[project]
+name = "bankhub"
+version = "0.4.0"
+description = "A universal hub for personal-finance data. Installs the bankhub core engine + CLI and the file-format adapters; `bankhub[connectors]` adds Plaid/SimpleFIN/Lunchmoney/etc. and `bankhub[all]` adds everything."
+readme = "README.md"
+requires-python = ">=3.9"
+# NOTE: confirm license + add a LICENSE file before publishing (see bankhub-core).
+keywords = ["finance", "banking", "lunchmoney", "ynab", "actual", "plaid",
+            "simplefin", "ofx", "csv", "etl", "aggregator"]
+authors = [{ name = "banker contributors" }]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: End Users/Desktop",
+    "Programming Language :: Python :: 3",
+    "Topic :: Office/Business :: Financial",
+]
+
+dependencies = [
+    "bankhub-core>=0.4.0,<0.5.0",
+    "bankhub-files>=0.4.0,<0.5.0",
+]
+
+[project.optional-dependencies]
+# The API / aggregator integrations.
+connectors = ["bankhub-connectors>=0.4.0,<0.5.0"]
+# Everything: connectors + the common optional SDKs (PDF, Excel, Actual).
+# The heavier/niche GnuCash writer stays opt-in via bankhub-files[gnucash].
+all = [
+    "bankhub-files[pdf,xlsx]>=0.4.0,<0.5.0",
+    "bankhub-connectors[actual]>=0.4.0,<0.5.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/latetedemelon/banker"
+Repository = "https://github.com/latetedemelon/banker"
+Issues = "https://github.com/latetedemelon/banker/issues"
+
+# Metapackage: no importable modules of its own.
+[tool.setuptools]
+packages = []
